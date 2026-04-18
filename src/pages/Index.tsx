@@ -13,25 +13,39 @@ const NAV_ITEMS: { id: Section; label: string; icon: string }[] = [
   { id: "settings", label: "Настройки", icon: "Settings2" },
 ];
 
+// Станции метро Екатеринбурга: Геологическая → Академическая
+const METRO_STATIONS = [
+  { name: "Геологическая",      km: 0,    eta: "09:00", line: "Свердловская" },
+  { name: "Площадь 1905 года",  km: 1.1,  eta: "09:02", line: "Свердловская" },
+  { name: "Динамо",             km: 2.3,  eta: "09:04", line: "Свердловская" },
+  { name: "Машиностроителей",   km: 3.6,  eta: "09:06", line: "Свердловская" },
+  { name: "Уралмаш",            km: 5.0,  eta: "09:09", line: "Свердловская" },
+  { name: "Проспект Космонавтов",km: 6.4, eta: "09:11", line: "Свердловская" },
+  { name: "Ботаническая",       km: 8.8,  eta: "09:15", line: "Свердловская" },
+  { name: "Чкаловская",         km: 10.1, eta: "09:17", line: "Свердловская" },
+  { name: "Академическая",      km: 11.6, eta: "09:20", line: "Свердловская" },
+];
+const TOTAL_ROUTE_KM = 11.6;
+
 function useSimulatedData() {
-  const [speed, setSpeed] = useState(187);
-  const [acceleration, setAcceleration] = useState(0.8);
-  const [power, setPower] = useState(74);
+  const [speed, setSpeed] = useState(62);
+  const [acceleration, setAcceleration] = useState(0.6);
+  const [power, setPower] = useState(68);
   const [brakeForce, setBrakeForce] = useState(2);
-  const [distance, setDistance] = useState(142.7);
-  const [temp, setTemp] = useState(82);
-  const [voltage, setVoltage] = useState(24.8);
+  const [distance, setDistance] = useState(3.6);
+  const [temp, setTemp] = useState(54);
+  const [voltage, setVoltage] = useState(750);
   const [time, setTime] = useState(new Date());
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setSpeed(s => Math.max(0, Math.min(320, s + (Math.random() - 0.5) * 3)));
-      setAcceleration(a => Math.max(-2, Math.min(3, a + (Math.random() - 0.5) * 0.3)));
-      setPower(p => Math.max(0, Math.min(100, p + (Math.random() - 0.5) * 2)));
-      setBrakeForce(b => Math.max(0, Math.min(100, b + (Math.random() - 0.48) * 1)));
-      setDistance(d => d + 0.001);
-      setTemp(t => Math.max(70, Math.min(110, t + (Math.random() - 0.5) * 0.5)));
-      setVoltage(v => Math.max(22, Math.min(28, v + (Math.random() - 0.5) * 0.1)));
+      setSpeed(s => Math.max(0, Math.min(90, s + (Math.random() - 0.5) * 4)));
+      setAcceleration(a => Math.max(-1.5, Math.min(1.5, a + (Math.random() - 0.5) * 0.3)));
+      setPower(p => Math.max(0, Math.min(100, p + (Math.random() - 0.5) * 3)));
+      setBrakeForce(b => Math.max(0, Math.min(100, b + (Math.random() - 0.48) * 1.5)));
+      setDistance(d => Math.min(TOTAL_ROUTE_KM, d + 0.0003));
+      setTemp(t => Math.max(45, Math.min(80, t + (Math.random() - 0.5) * 0.4)));
+      setVoltage(v => Math.max(700, Math.min(800, v + (Math.random() - 0.5) * 5)));
       setTime(new Date());
     }, 400);
     return () => clearInterval(interval);
@@ -51,10 +65,10 @@ function StatusDot({ active, color = "#00ffcc" }: { active: boolean; color?: str
 }
 
 function SpeedGauge({ speed }: { speed: number }) {
-  const maxSpeed = 320;
+  const maxSpeed = 90;
   const pct = speed / maxSpeed;
   const circumference = 2 * Math.PI * 54;
-  const color = speed > 250 ? "#ff2244" : speed > 180 ? "#ffcc00" : "#00ffcc";
+  const color = speed > 80 ? "#ff2244" : speed > 60 ? "#ffcc00" : "#00ffcc";
 
   return (
     <div className="relative flex items-center justify-center" style={{ width: 180, height: 180 }}>
@@ -111,11 +125,11 @@ function MiniBar({ value, max = 100, color = "#00ffcc", label, unit = "%" }: {
 function DashboardSection({ data }: { data: ReturnType<typeof useSimulatedData> }) {
   const { speed, acceleration, power, brakeForce, distance, temp, voltage, time } = data;
   const events = [
-    { time: "14:23:01", msg: "Автопилот: скорость откорректирована до 185 км/ч", type: "info" },
-    { time: "14:21:47", msg: "Маршрут: пройдена станция Краснодар-1", type: "ok" },
-    { time: "14:19:33", msg: "Торможение: снижение перед кривой R=800", type: "warn" },
-    { time: "14:17:20", msg: "Связь: переключение на ретранслятор #4", type: "info" },
-    { time: "14:15:08", msg: "Система: все параметры в норме", type: "ok" },
+    { time: "09:06:12", msg: "Отправление со ст. Машиностроителей, разгон до 65 км/ч", type: "ok" },
+    { time: "09:04:33", msg: "Прибытие на ст. Машиностроителей, стоянка 20с", type: "info" },
+    { time: "09:03:51", msg: "Торможение: снижение скорости перед платформой", type: "warn" },
+    { time: "09:02:05", msg: "Пройдена ст. Площадь 1905 года", type: "ok" },
+    { time: "09:00:00", msg: "Отправление от ст. Геологическая", type: "ok" },
   ];
 
   return (
@@ -153,7 +167,7 @@ function DashboardSection({ data }: { data: ReturnType<typeof useSimulatedData> 
               <MiniBar value={power} label="Мощность тяги" color="var(--neon-cyan)" />
               <MiniBar value={brakeForce} label="Тормозное усилие" color="var(--neon-orange)" />
               <MiniBar value={temp} max={120} label="Температура двигателя" unit="°C" color={temp > 100 ? "var(--neon-red)" : "var(--neon-green)"} />
-              <MiniBar value={voltage} max={30} label="Напряжение бортсети" unit=" В" color="var(--neon-blue)" />
+              <MiniBar value={voltage} max={850} label="Напряжение КР" unit=" В" color="var(--neon-blue)" />
             </div>
           </div>
           <div className="surface-card rounded-xl p-4 border neon-border-blue animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
@@ -181,8 +195,9 @@ function DashboardSection({ data }: { data: ReturnType<typeof useSimulatedData> 
             <div className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: "var(--text-mid)" }}>Текущий маршрут</div>
             <div className="flex flex-col gap-1.5">
               {[
-                { label: "Откуда", value: "Москва-Казанская" },
-                { label: "Куда", value: "Казань-Пассажирская" },
+                { label: "Откуда", value: "Геологическая" },
+                { label: "Куда", value: "Академическая" },
+                { label: "Линия", value: "Свердловская" },
               ].map(r => (
                 <div key={r.label} className="flex justify-between">
                   <span style={{ color: "var(--text-mid)" }} className="text-sm">{r.label}</span>
@@ -191,23 +206,23 @@ function DashboardSection({ data }: { data: ReturnType<typeof useSimulatedData> 
               ))}
               <div className="flex justify-between">
                 <span style={{ color: "var(--text-mid)" }} className="text-sm">Пройдено</span>
-                <span className="font-mono font-semibold text-sm neon-text-cyan">{distance.toFixed(1)} км</span>
+                <span className="font-mono font-semibold text-sm neon-text-cyan">{distance.toFixed(2)} км</span>
               </div>
               <div className="flex justify-between">
                 <span style={{ color: "var(--text-mid)" }} className="text-sm">Прибытие</span>
-                <span className="font-semibold text-sm" style={{ color: "var(--neon-green)" }}>17:42 (+0 мин)</span>
+                <span className="font-semibold text-sm" style={{ color: "var(--neon-green)" }}>09:20 (+0 мин)</span>
               </div>
             </div>
             <div className="mt-3 h-2 rounded-full overflow-hidden" style={{ background: "var(--surface-4)" }}>
               <div className="h-full rounded-full" style={{
-                width: `${(distance / 818) * 100}%`,
+                width: `${(distance / TOTAL_ROUTE_KM) * 100}%`,
                 background: "linear-gradient(90deg, var(--neon-blue), var(--neon-cyan))",
                 transition: "width 0.5s"
               }} />
             </div>
             <div className="flex justify-between mt-1">
               <span className="text-xs" style={{ color: "var(--text-dim)" }}>0 км</span>
-              <span className="text-xs" style={{ color: "var(--text-dim)" }}>818 км</span>
+              <span className="text-xs" style={{ color: "var(--text-dim)" }}>{TOTAL_ROUTE_KM} км</span>
             </div>
           </div>
           <div className="surface-card rounded-xl p-4 border animate-fade-in-up" style={{ animationDelay: "0.2s", borderColor: "var(--surface-4)" }}>
@@ -239,8 +254,8 @@ function DashboardSection({ data }: { data: ReturnType<typeof useSimulatedData> 
 }
 
 function MonitoringSection({ data }: { data: ReturnType<typeof useSimulatedData> }) {
-  const historyRef = useRef<number[]>(Array(40).fill(187));
-  const [history, setHistory] = useState<number[]>(Array(40).fill(187));
+  const historyRef = useRef<number[]>(Array(40).fill(62));
+  const [history, setHistory] = useState<number[]>(Array(40).fill(62));
 
   useEffect(() => {
     historyRef.current = [...historyRef.current.slice(1), data.speed];
@@ -261,7 +276,7 @@ function MonitoringSection({ data }: { data: ReturnType<typeof useSimulatedData>
     { label: "Ускорение", value: (data.acceleration >= 0 ? "+" : "") + data.acceleration.toFixed(2), unit: "м/с²", color: "var(--neon-blue)", icon: "TrendingUp" },
     { label: "Мощность", value: data.power.toFixed(1), unit: "%", color: "var(--neon-green)", icon: "Zap" },
     { label: "Температура", value: data.temp.toFixed(1), unit: "°C", color: data.temp > 100 ? "var(--neon-red)" : "var(--neon-orange)", icon: "Thermometer" },
-    { label: "Напряжение", value: data.voltage.toFixed(2), unit: "В", color: "var(--neon-yellow)", icon: "Battery" },
+    { label: "Напряжение КР", value: Math.round(data.voltage).toString(), unit: "В", color: "var(--neon-yellow)", icon: "Battery" },
     { label: "Торможение", value: data.brakeForce.toFixed(1), unit: "%", color: "var(--neon-orange)", icon: "Disc" },
   ];
 
@@ -310,16 +325,16 @@ function MonitoringSection({ data }: { data: ReturnType<typeof useSimulatedData>
 
 function DiagnosticsSection() {
   const components = [
-    { name: "Тяговый двигатель #1", status: "ok", value: "82°C", detail: "Норма до 120°C" },
-    { name: "Тяговый двигатель #2", status: "ok", value: "79°C", detail: "Норма до 120°C" },
-    { name: "Тормозная система", status: "ok", value: "100%", detail: "Давление в норме" },
-    { name: "БЛОК АРС", status: "ok", value: "v4.2.1", detail: "Прошивка актуальна" },
-    { name: "КЛУБ-У", status: "warn", value: "WARN", detail: "Проверьте антенну" },
-    { name: "Навигационный модуль", status: "ok", value: "GPS+ГЛОНАСС", detail: "12 спутников" },
-    { name: "Радиостанция", status: "ok", value: "161.475 МГц", detail: "Канал 1, норма" },
-    { name: "Бортовой компьютер", status: "ok", value: "CPU 12%", detail: "RAM: 34%" },
+    { name: "Тяговый двигатель #1", status: "ok", value: "54°C", detail: "Норма до 80°C" },
+    { name: "Тяговый двигатель #2", status: "ok", value: "51°C", detail: "Норма до 80°C" },
+    { name: "Тормозная система", status: "ok", value: "100%", detail: "Пневматика в норме" },
+    { name: "АРС (автоматика)", status: "ok", value: "v3.8.2", detail: "Прошивка актуальна" },
+    { name: "Дверная система", status: "warn", value: "WARN", detail: "Дверь #4Л — задержка" },
+    { name: "Контактный рельс (КР)", status: "ok", value: "750 В", detail: "Напряжение в норме" },
+    { name: "Радиостанция", status: "ok", value: "2.0 МГц", detail: "ДУ-диспетчер: связь" },
+    { name: "Бортовой компьютер", status: "ok", value: "CPU 8%", detail: "RAM: 22%" },
     { name: "Система пожаротушения", status: "ok", value: "Готова", detail: "Датчики активны" },
-    { name: "Токоприёмник", status: "ok", value: "25 кВ", detail: "КС в норме" },
+    { name: "Токосъёмные башмаки", status: "ok", value: "Норма", detail: "Износ 12%" },
   ];
 
   const sc: Record<string, string> = { ok: "var(--neon-green)", warn: "var(--neon-yellow)", err: "var(--neon-red)" };
@@ -363,21 +378,20 @@ function DiagnosticsSection() {
 }
 
 function RoutesSection() {
-  const stations = [
-    { name: "Москва-Казанская", km: 0, eta: "10:00", passed: true, current: false, type: "origin" },
-    { name: "Петушки", km: 116, eta: "11:12", passed: true, current: false, type: "stop" },
-    { name: "Владимир", km: 191, eta: "11:58", passed: false, current: true, type: "stop" },
-    { name: "Нижний Новгород-Моск.", km: 441, eta: "14:05", passed: false, current: false, type: "stop" },
-    { name: "Казань-Пассажирская", km: 818, eta: "17:42", passed: false, current: false, type: "destination" },
-  ];
+  const stations = METRO_STATIONS.map((st, i) => ({
+    ...st,
+    passed: i <= 3,
+    current: i === 3,
+    type: i === 0 ? "origin" : i === METRO_STATIONS.length - 1 ? "destination" : "stop",
+  }));
 
   return (
     <div className="h-full flex flex-col gap-4 overflow-auto p-4">
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: "Маршрут №43", value: "Москва — Казань", sub: "818 км · 7ч 42мин", color: "var(--text-bright)" },
-          { label: "Следующая остановка", value: "Нижний Новгород", sub: "через 250 км · 14:05", color: "var(--neon-cyan)" },
-          { label: "Пункт назначения", value: "Казань-Пассажирская", sub: "через 675 км · 17:42", color: "var(--neon-green)" },
+          { label: "Маршрут", value: "Геологическая → Академическая", sub: `${TOTAL_ROUTE_KM} км · 9 станций · 20 мин`, color: "var(--text-bright)" },
+          { label: "Следующая станция", value: "Уралмаш", sub: "через 1.4 км · 09:09", color: "var(--neon-cyan)" },
+          { label: "Конечная", value: "Академическая", sub: "через 8.0 км · 09:20", color: "var(--neon-green)" },
         ].map(c => (
           <div key={c.label} className="surface-card rounded-xl p-4 border" style={{ borderColor: "var(--surface-4)" }}>
             <div className="text-xs uppercase tracking-wider mb-1" style={{ color: "var(--text-mid)" }}>{c.label}</div>
@@ -387,37 +401,75 @@ function RoutesSection() {
         ))}
       </div>
       <div className="surface-card rounded-xl p-5 border flex-1" style={{ borderColor: "var(--surface-4)" }}>
-        <div className="text-xs uppercase tracking-widest mb-6" style={{ color: "var(--text-mid)" }}>Схема маршрута</div>
-        <div className="relative">
-          <div className="absolute left-6 top-3 bottom-3 w-0.5" style={{ background: "var(--surface-4)" }} />
-          <div className="space-y-6">
-            {stations.map((st) => (
-              <div key={st.name} className="flex items-center gap-4 relative">
-                <div className="w-12 h-12 rounded-full flex items-center justify-center border-2 shrink-0 z-10"
-                  style={{
-                    background: st.current ? "var(--neon-cyan)" : st.passed ? "var(--surface-4)" : "var(--surface-2)",
-                    borderColor: st.current ? "var(--neon-cyan)" : st.passed ? "var(--neon-green)" : "var(--surface-4)",
-                    boxShadow: st.current ? "0 0 20px rgba(0,255,204,0.5)" : st.passed ? "0 0 8px rgba(57,255,20,0.3)" : "none"
-                  }}>
-                  <Icon name={st.type === "origin" ? "MapPin" : st.type === "destination" ? "Flag" : "Circle"} size={18}
-                    style={{ color: st.current ? "var(--surface-1)" : st.passed ? "var(--neon-green)" : "var(--text-dim)" }} />
-                </div>
-                <div className="flex-1">
-                  <div className="flex justify-between items-center">
-                    <span className="font-semibold text-sm" style={{
-                      color: st.current ? "var(--neon-cyan)" : st.passed ? "var(--text-mid)" : "var(--text-bright)"
-                    }}>{st.name}</span>
-                    <span className="font-mono text-sm" style={{ color: st.passed ? "var(--text-dim)" : "var(--text-bright)" }}>{st.eta}</span>
+        <div className="flex items-center justify-between mb-6">
+          <span className="text-xs uppercase tracking-widest" style={{ color: "var(--text-mid)" }}>Схема маршрута · Свердловская линия</span>
+          <span className="font-mono text-xs px-2 py-1 rounded" style={{ background: "rgba(0,255,204,0.1)", color: "var(--neon-cyan)", border: "1px solid rgba(0,255,204,0.2)" }}>
+            {stations.filter(s => s.passed && !s.current).length} / {stations.length} станций
+          </span>
+        </div>
+
+        {/* Горизонтальная схема метро */}
+        <div className="relative mb-8">
+          <div className="flex items-center gap-0">
+            {stations.map((st, i) => (
+              <div key={st.name} className="flex items-center" style={{ flex: i < stations.length - 1 ? "1 1 0" : "0 0 auto" }}>
+                <div className="flex flex-col items-center gap-2 relative">
+                  <div className="w-8 h-8 rounded-full border-2 flex items-center justify-center z-10 shrink-0 transition-all duration-300"
+                    style={{
+                      background: st.current ? "var(--neon-cyan)" : st.passed ? "rgba(57,255,20,0.15)" : "var(--surface-2)",
+                      borderColor: st.current ? "var(--neon-cyan)" : st.passed ? "var(--neon-green)" : "var(--surface-4)",
+                      boxShadow: st.current ? "0 0 16px rgba(0,255,204,0.6)" : st.passed ? "0 0 6px rgba(57,255,20,0.3)" : "none",
+                      width: st.current ? 40 : st.type === "origin" || st.type === "destination" ? 36 : 32,
+                      height: st.current ? 40 : st.type === "origin" || st.type === "destination" ? 36 : 32,
+                    }}>
+                    {st.current
+                      ? <Icon name="Train" size={16} style={{ color: "var(--surface-1)" }} />
+                      : st.passed
+                        ? <Icon name="Check" size={14} style={{ color: "var(--neon-green)" }} />
+                        : <div className="w-2 h-2 rounded-full" style={{ background: "var(--text-dim)" }} />
+                    }
                   </div>
-                  <div className="flex gap-3 mt-0.5">
-                    <span className="text-xs" style={{ color: "var(--text-dim)" }}>{st.km} км</span>
-                    {st.current && <span className="text-xs font-semibold neon-text-cyan">◀ Текущее положение</span>}
-                    {st.passed && !st.current && <span className="text-xs" style={{ color: "var(--neon-green)" }}>✓ Пройдено</span>}
+                  <div className="text-center" style={{ width: 72, marginLeft: i === 0 ? 0 : -20 }}>
+                    <div className="text-xs leading-tight font-semibold"
+                      style={{ color: st.current ? "var(--neon-cyan)" : st.passed ? "var(--neon-green)" : "var(--text-mid)" }}>
+                      {st.name}
+                    </div>
+                    <div className="font-mono text-xs mt-0.5" style={{ color: "var(--text-dim)" }}>{st.eta}</div>
                   </div>
                 </div>
+                {i < stations.length - 1 && (
+                  <div className="h-1 flex-1 rounded mx-1 relative overflow-hidden" style={{ background: "var(--surface-4)", minWidth: 20 }}>
+                    {st.passed && (
+                      <div className="absolute inset-0 rounded" style={{
+                        background: "linear-gradient(90deg, var(--neon-green), var(--neon-cyan))",
+                        boxShadow: "0 0 4px rgba(0,255,204,0.4)"
+                      }} />
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Список станций */}
+        <div className="grid grid-cols-3 gap-3 mt-6">
+          {stations.map((st) => (
+            <div key={st.name} className="flex items-center gap-3 rounded-xl px-3 py-2.5 border transition-all"
+              style={{
+                background: st.current ? "rgba(0,255,204,0.08)" : "var(--surface-3)",
+                borderColor: st.current ? "rgba(0,255,204,0.3)" : "var(--surface-4)",
+              }}>
+              <StatusDot active={st.passed || st.current} color={st.current ? "var(--neon-cyan)" : "var(--neon-green)"} />
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium truncate" style={{ color: st.current ? "var(--neon-cyan)" : st.passed ? "var(--text-mid)" : "var(--text-bright)" }}>
+                  {st.name}
+                </div>
+                <div className="font-mono text-xs" style={{ color: "var(--text-dim)" }}>{st.km} км · {st.eta}</div>
+              </div>
+              {st.current && <span className="font-mono text-xs neon-text-cyan shrink-0">ТУТ</span>}
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -481,10 +533,10 @@ function SafetySection() {
             <div className="text-xs uppercase tracking-widest mb-4" style={{ color: "var(--text-mid)" }}>Ограничения скорости</div>
             <div className="space-y-3">
               {[
-                { zone: "Текущий участок", limit: 200, color: "var(--neon-cyan)" },
-                { zone: "Следующие 5 км", limit: 180, color: "var(--neon-blue)" },
-                { zone: "Кривая R=800 (4 км)", limit: 120, color: "var(--neon-yellow)" },
-                { zone: "Станция НН (25 км)", limit: 60, color: "var(--neon-orange)" },
+                { zone: "Перегон: текущий", limit: 80, color: "var(--neon-cyan)" },
+                { zone: "Кривая R=300 (300 м)", limit: 55, color: "var(--neon-yellow)" },
+                { zone: "Подъезд к ст. Уралмаш", limit: 35, color: "var(--neon-orange)" },
+                { zone: "Платформа (стоянка)", limit: 10, color: "var(--neon-red)" },
               ].map(r => (
                 <div key={r.zone} className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full border-2 flex items-center justify-center shrink-0 font-mono font-bold text-sm"
@@ -749,9 +801,9 @@ export default function Index() {
 
       <footer className="flex items-center gap-6 px-6 py-2 border-t shrink-0"
         style={{ background: "var(--surface-2)", borderColor: "var(--surface-4)" }}>
-        <span className="font-mono text-xs" style={{ color: "var(--text-dim)" }}>Поезд №43 · Москва–Казань</span>
+        <span className="font-mono text-xs" style={{ color: "var(--text-dim)" }}>Состав №7 · Геологическая–Академическая</span>
         <span style={{ color: "var(--text-dim)" }}>|</span>
-        <span className="font-mono text-xs" style={{ color: "var(--text-dim)" }}>Локомотив ЭП20-032</span>
+        <span className="font-mono text-xs" style={{ color: "var(--text-dim)" }}>Вагон 81-717 · №4312</span>
         <span style={{ color: "var(--text-dim)" }}>|</span>
         <span className="font-mono text-xs neon-text-green">Все системы в норме</span>
         <div className="ml-auto flex items-center gap-1.5">
